@@ -9,6 +9,7 @@ namespace Lab07
     {
         private readonly ProductoNegocio _negocio = new ProductoNegocio();
         private int _idSeleccionado = 0;
+        private bool _listo = false;
 
         public MainWindow()
         {
@@ -19,7 +20,21 @@ namespace Lab07
         {
             try
             {
-                CmbCategoria.ItemsSource = _negocio.ListarCategorias();
+                List<Categoria> categorias = _negocio.ListarCategorias();
+                CmbCategoria.ItemsSource = categorias;
+
+                var filtro = new List<Categoria>
+                {
+                    new Categoria { IdCategoria = 0, NombreCategoria = "Todas las categorías" }
+                };
+                filtro.AddRange(categorias);
+                CmbFiltroCategoria.ItemsSource = filtro;
+                CmbFiltroCategoria.SelectedIndex = 0;
+
+                CmbOrden.ItemsSource = new[] { "Código", "Nombre", "Precio", "Stock" };
+                CmbOrden.SelectedIndex = 0;
+
+                _listo = true;
                 CargarProductos();
                 LimpiarFormulario();
             }
@@ -32,7 +47,10 @@ namespace Lab07
 
         private void CargarProductos()
         {
-            var lista = _negocio.Buscar(TxtBuscar.Text);
+            int idCategoria = CmbFiltroCategoria.SelectedValue is int id ? id : 0;
+            string orden = CmbOrden.SelectedItem as string ?? "Código";
+
+            List<ProductoVista> lista = _negocio.ListarVista(TxtBuscar.Text, idCategoria, orden);
             DgProductos.ItemsSource = lista;
             TxtResultados.Text = lista.Count + " producto(s)";
         }
@@ -50,9 +68,9 @@ namespace Lab07
             TxtNombre.Focus();
         }
 
-        private void TxtBuscar_TextChanged(object sender, TextChangedEventArgs e)
+        private void FiltrosCambiaron(object sender, RoutedEventArgs e)
         {
-            if (!IsLoaded) return;
+            if (!_listo) return;
             try { CargarProductos(); }
             catch (Exception ex) { MostrarError(ex); }
         }
@@ -60,11 +78,26 @@ namespace Lab07
         private void BtnLimpiarBusqueda_Click(object sender, RoutedEventArgs e)
         {
             TxtBuscar.Clear();
+            CmbFiltroCategoria.SelectedIndex = 0;
+            CmbOrden.SelectedIndex = 0;
+        }
+
+        private void BtnResumen_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var ventana = new ResumenWindow(_negocio) { Owner = this };
+                ventana.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                MostrarError(ex);
+            }
         }
 
         private void DgProductos_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (DgProductos.SelectedItem is Producto p)
+            if (DgProductos.SelectedItem is ProductoVista p)
             {
                 _idSeleccionado = p.IdProducto;
                 TxtId.Text = p.IdProducto.ToString();

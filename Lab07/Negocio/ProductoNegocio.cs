@@ -23,6 +23,71 @@ namespace Lab07.Negocio
             return _datos.ListarCategorias();
         }
 
+        /*
+         Consulta LINQ principal de la lista:
+         1. Inner join entre productos y categorias para mostrar el nombre de la categoria.
+         2. Filtro (Where) por categoria cuando se elige una.
+         3. Ordenamiento (OrderBy) segun el criterio elegido.
+        */
+        public List<ProductoVista> ListarVista(string texto, int idCategoria, string orden)
+        {
+            List<Producto> productos = Buscar(texto);
+            List<Categoria> categorias = _datos.ListarCategorias();
+
+            IEnumerable<ProductoVista> consulta =
+                from p in productos
+                join c in categorias on p.IdCategoria equals c.IdCategoria
+                select new ProductoVista
+                {
+                    IdProducto = p.IdProducto,
+                    NombreProducto = p.NombreProducto,
+                    IdCategoria = p.IdCategoria,
+                    NombreCategoria = c.NombreCategoria,
+                    PrecioUnidad = p.PrecioUnidad,
+                    UnidadesEnExistencia = p.UnidadesEnExistencia
+                };
+
+            if (idCategoria > 0)
+            {
+                consulta = consulta.Where(v => v.IdCategoria == idCategoria);
+            }
+
+            IEnumerable<ProductoVista> ordenada = orden switch
+            {
+                "Nombre" => consulta.OrderBy(v => v.NombreProducto),
+                "Precio" => consulta.OrderBy(v => v.PrecioUnidad),
+                "Stock" => consulta.OrderBy(v => v.UnidadesEnExistencia),
+                _ => consulta.OrderBy(v => v.IdProducto)
+            };
+
+            return ordenada.ToList();
+        }
+
+        /*
+         Consulta LINQ con inner join y group by:
+         agrupa los productos activos por categoria y calcula cantidad, stock total y precio promedio.
+        */
+        public List<ResumenCategoria> ResumenPorCategoria()
+        {
+            List<Producto> productos = _datos.ListarProductos();
+            List<Categoria> categorias = _datos.ListarCategorias();
+
+            var resumen =
+                from p in productos
+                join c in categorias on p.IdCategoria equals c.IdCategoria
+                group p by c.NombreCategoria into g
+                orderby g.Key
+                select new ResumenCategoria
+                {
+                    NombreCategoria = g.Key,
+                    CantidadProductos = g.Count(),
+                    StockTotal = g.Sum(x => (int)x.UnidadesEnExistencia),
+                    PrecioPromedio = Math.Round(g.Average(x => x.PrecioUnidad), 2)
+                };
+
+            return resumen.ToList();
+        }
+
         public void Guardar(Producto p)
         {
             Validar(p);
