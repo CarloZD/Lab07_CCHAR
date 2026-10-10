@@ -1,0 +1,163 @@
+<Window x:Class="Lab07.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Productos Neptuno" Height="560" Width="980"
+        MinHeight="480" MinWidth="860"
+        WindowStartupLocation="CenterScreen"
+        Background="#F3F5F8"
+        FontFamily="Segoe UI" FontSize="13"
+        Loaded="Window_Loaded">
+
+    <Window.Resources>
+        <SolidColorBrush x:Key="Navy" Color="#1B2A41"/>
+        <SolidColorBrush x:Key="Teal" Color="#0F9D8A"/>
+        <SolidColorBrush x:Key="Danger" Color="#C8453B"/>
+        <SolidColorBrush x:Key="Line" Color="#D8DEE6"/>
+
+        <Style x:Key="Etiqueta" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#5B6776"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Margin" Value="0,12,0,4"/>
+        </Style>
+
+        <Style x:Key="Campo" TargetType="TextBox">
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="BorderBrush" Value="{StaticResource Line}"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+
+        <Style x:Key="Boton" TargetType="Button">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="{StaticResource Navy}"/>
+            <Setter Property="Padding" Value="16,8"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="fondo" Background="{TemplateBinding Background}"
+                                CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="fondo" Property="Opacity" Value="0.88"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="fondo" Property="Opacity" Value="0.4"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="0,0,0,16">
+            <TextBlock Text="Productos" FontSize="24" FontWeight="SemiBold"
+                       Foreground="{StaticResource Navy}"/>
+            <TextBlock Text="Mantenimiento de la tabla productos de Neptuno"
+                       Foreground="#5B6776" Margin="0,2,0,0"/>
+        </StackPanel>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="20"/>
+                <ColumnDefinition Width="300"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Lista y buscador -->
+            <Border Grid.Column="0" Background="White" CornerRadius="10"
+                    BorderBrush="{StaticResource Line}" BorderThickness="1" Padding="16">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0" Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="TxtBuscar" Grid.Column="0" Style="{StaticResource Campo}"
+                                 ToolTip="Escribe parte del nombre del producto"
+                                 TextChanged="TxtBuscar_TextChanged"/>
+                        <Button Grid.Column="1" Content="Limpiar" Margin="8,0,0,0"
+                                Style="{StaticResource Boton}" Background="#6B7685"
+                                Click="BtnLimpiarBusqueda_Click"/>
+                    </Grid>
+
+                    <DataGrid x:Name="DgProductos" Grid.Row="1"
+                              AutoGenerateColumns="False" IsReadOnly="True"
+                              SelectionMode="Single" SelectionUnit="FullRow"
+                              HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                              HorizontalGridLinesBrush="#E8ECF1"
+                              BorderThickness="0" Background="White"
+                              RowHeight="32" CanUserAddRows="False"
+                              SelectionChanged="DgProductos_SelectionChanged">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="ID" Binding="{Binding IdProducto}" Width="55"/>
+                            <DataGridTextColumn Header="Producto" Binding="{Binding NombreProducto}" Width="*"/>
+                            <DataGridTextColumn Header="Categoría" Binding="{Binding IdCategoria}" Width="80"/>
+                            <DataGridTextColumn Header="Precio" Binding="{Binding PrecioUnidad, StringFormat=N0}" Width="80"/>
+                            <DataGridTextColumn Header="Stock" Binding="{Binding UnidadesEnExistencia}" Width="70"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <TextBlock x:Name="TxtResultados" Grid.Row="2" Margin="0,10,0,0"
+                               Foreground="#5B6776"/>
+                </Grid>
+            </Border>
+
+            <!-- Formulario -->
+            <Border Grid.Column="2" Background="White" CornerRadius="10"
+                    BorderBrush="{StaticResource Line}" BorderThickness="1" Padding="18">
+                <StackPanel>
+                    <TextBlock Text="Datos del producto" FontSize="16" FontWeight="SemiBold"
+                               Foreground="{StaticResource Navy}"/>
+
+                    <TextBlock Text="Código" Style="{StaticResource Etiqueta}"/>
+                    <TextBox x:Name="TxtId" Style="{StaticResource Campo}" IsReadOnly="True"
+                             Background="#F3F5F8"/>
+
+                    <TextBlock Text="Nombre" Style="{StaticResource Etiqueta}"/>
+                    <TextBox x:Name="TxtNombre" Style="{StaticResource Campo}" MaxLength="40"/>
+
+                    <TextBlock Text="Categoría" Style="{StaticResource Etiqueta}"/>
+                    <ComboBox x:Name="CmbCategoria" DisplayMemberPath="NombreCategoria"
+                              SelectedValuePath="IdCategoria" Padding="8,6"/>
+
+                    <TextBlock Text="Precio por unidad" Style="{StaticResource Etiqueta}"/>
+                    <TextBox x:Name="TxtPrecio" Style="{StaticResource Campo}"/>
+
+                    <TextBlock Text="Unidades en existencia" Style="{StaticResource Etiqueta}"/>
+                    <TextBox x:Name="TxtStock" Style="{StaticResource Campo}"/>
+
+                    <Grid Margin="0,22,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="8"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0" Content="Guardar" Style="{StaticResource Boton}"
+                                Background="{StaticResource Teal}" Click="BtnGuardar_Click"/>
+                        <Button Grid.Column="2" Content="Nuevo" Style="{StaticResource Boton}"
+                                Click="BtnNuevo_Click"/>
+                    </Grid>
+                    <Button x:Name="BtnEliminar" Content="Eliminar" Margin="0,8,0,0"
+                            Style="{StaticResource Boton}" Background="{StaticResource Danger}"
+                            Click="BtnEliminar_Click"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>
